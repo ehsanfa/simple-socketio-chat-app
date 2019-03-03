@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>hello from chat app</title>
+</head>
+<body>
+	<!-- <h1>hello from chat app</h1> -->
+	<div id="app">
+		{{ messages }}
+		<input type="text" v-model="messageToSend" @keyup.enter="sendMessage">
+		<button @click="leaveRoom">Leave the room</button>
+	</div>
+	<script src="./socket.io.js"></script>
+	<script src="./vue.min.js"></script>
+	<script>
+	  var socket = io("http://localhost:8090/chat");
+	  socket.on('connect', function () {
+	  	socket.emit('enter room', {
+	  		room: 'hasan'
+	  	})
+	  });
+	  var app = new Vue({
+	  el: '#app',
+	  methods: {
+	  	newMessage(msg) {
+	  		this.messages.push(msg)
+	  	},
+	  	sendMessage() {
+	  		console.log('sending new msg')
+	  		socket.emit('chat message', {
+	  			msg: this.messageToSend,
+	  			room: "hasan"
+	  		});
+	  		this.messageToSend = null;
+	  	},
+	  	leaveRoom() {
+	  		socket.emit('leave room', {
+	  			room: "hasan"
+	  		})
+	  	}
+	  },
+	  data: {
+	    messages: [],
+	    messageToSend: null
+	  }
+	})
+	  socket.on('reply', function (msg) {
+	  	console.log('new reply')
+	  	app.newMessage(msg)
+	  });
+	</script>
+</body>
+</html>

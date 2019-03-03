@@ -1,0 +1,28 @@
+version: '3'
+services:
+    server:
+        build:
+            context: .
+            dockerfile: server/deploy/Dockerfile
+        restart: always
+        ports:
+            - 8090:8080
+        volumes:
+            - ./server/src:/app
+        networks:
+            - chat-app
+    client:
+        build:
+            context: .
+            dockerfile: client/deploy/Dockerfile
+        restart: always
+        volumes:
+            - ./client/src:/app
+        networks:
+            - chat-app
+        ports:
+            - 8001:80
+networks:
+    chat-app:
+        driver: bridge
+
