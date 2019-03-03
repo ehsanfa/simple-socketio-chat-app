@@ -13,7 +13,9 @@
 	<script src="./socket.io.js"></script>
 	<script src="./vue.min.js"></script>
 	<script>
-	  var socket = io("http://localhost:8090/chat");
+	  var socket = io("http://localhost:8020/chat", {
+	  	path: "/"
+	  });
 	  socket.on('connect', function () {
 	  	socket.emit('enter room', {
 	  		room: 'hasan'

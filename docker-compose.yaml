@@ -6,7 +6,8 @@ services:
             dockerfile: server/deploy/Dockerfile
         restart: always
         ports:
-            - 8090:8080
+            - 8020:8020
+            - 8081:8081
         volumes:
             - ./server/src:/app
         networks:
