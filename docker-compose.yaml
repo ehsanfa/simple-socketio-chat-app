@@ -1,17 +1,67 @@
 version: '3'
 services:
-    server:
+    front-proxy:
+        build:
+            context: .
+            dockerfile: front-proxy/deploy/Dockerfile
+        ports:
+            - 9020:80
+        networks:
+            - envoymesh
+    server_1:
         build:
             context: .
             dockerfile: server/deploy/Dockerfile
         restart: always
-        ports:
-            - 8020:8020
-            - 8081:8081
+        environment:
+            - SERVICE_NAME=1
+        expose:
+            - "80"
         volumes:
             - ./server/src:/app
         networks:
-            - chat-app
+            envoymesh:
+                aliases:
+                    - socket_server_1
+    server_2:
+        build:
+            context: .
+            dockerfile: server/deploy/Dockerfile
+        restart: always
+        environment:
+            - SERVICE_NAME=2
+        expose:
+            - "80"
+        volumes:
+            - ./server/src:/app
+        networks:
+            envoymesh:
+                aliases:
+                    - socket_server_2
+    server_3:
+        build:
+            context: .
+            dockerfile: server/deploy/Dockerfile
+        restart: always
+        environment:
+            - SERVICE_NAME=3
+        expose:
+            - "80"
+        volumes:
+            - ./server/src:/app
+        networks:
+            envoymesh:
+                aliases:
+                    - socket_server_3
+    redis:
+        image: redis:5.0-alpine
+        expose:
+            - "6379"
+        networks:
+            envoymesh:
+                aliases:
+                    - redis
+
     client:
         build:
             context: .
@@ -20,10 +70,10 @@ services:
         volumes:
             - ./client/src:/app
         networks:
-            - chat-app
+            - envoymesh
         ports:
             - 8001:80
 networks:
-    chat-app:
+    envoymesh:
         driver: bridge
 

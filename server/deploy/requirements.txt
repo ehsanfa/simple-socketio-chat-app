@@ -1,2 +1,4 @@
 python-socketio==3.1.2
 aiohttp==3.5.4
+redis==3.2.1
+aioredis==1.2.0

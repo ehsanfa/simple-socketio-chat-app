@@ -13,10 +13,8 @@
 	<script src="./socket.io.js"></script>
 	<script src="./vue.min.js"></script>
 	<script>
-	  var socket = io("http://localhost:8020/chat", {
-	  	path: "/"
-	  });
-	  socket.on('connect', function () {
+	  var socket = io("http://chat-app.com:9020/chat");
+	  socket.on('connect', function (msg) {
 	  	socket.emit('enter room', {
 	  		room: 'hasan'
 	  	})

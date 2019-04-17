@@ -1,7 +1,9 @@
+import os
 from aiohttp import web
 import socketio
 
-sio = socketio.AsyncServer()
+mgr = socketio.AsyncRedisManager('redis://redis')
+sio = socketio.AsyncServer(client_manager=mgr)
 app = web.Application()
 sio.attach(app)
 
@@ -41,4 +43,4 @@ async def get_chat_id():
     return "chat-%s" % "ehsan"
 
 if __name__ == '__main__':
-	web.run_app(app)
+	web.run_app(app, port=80)
