@@ -53,6 +53,21 @@ services:
             envoymesh:
                 aliases:
                     - socket_server_3
+    server_4:
+        build:
+            context: .
+            dockerfile: server/deploy/Dockerfile
+        restart: always
+        environment:
+            - SERVICE_NAME=4
+        expose:
+            - "80"
+        volumes:
+            - ./server/src:/app
+        networks:
+            envoymesh:
+                aliases:
+                    - socket_server_4
     redis:
         image: redis:5.0-alpine
         expose:
