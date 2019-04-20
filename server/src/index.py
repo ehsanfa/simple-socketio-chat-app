@@ -1,5 +1,6 @@
 import os
 from aiohttp import web
+import motor.motor_asyncio
 import socketio
 
 while(True):
@@ -15,6 +16,8 @@ mgr = socketio.AsyncRedisManager('redis://redis')
 sio = socketio.AsyncServer(client_manager=mgr)
 app = web.Application()
 sio.attach(app)
+client = motor.motor_asyncio.AsyncIOMotorClient("mongodb")
+db = client.messages
 
 async def index(request):
 	"""Serve the client-side application."""
@@ -38,6 +41,8 @@ async def leave_room(sid, data):
 @sio.on('chat message', namespace='/chat')
 async def message(sid, data):
 	print("message ", data, os.environ["SERVICE_NAME"])
+	document = {'key': 'value'}
+	await db.test_collection.insert_one(document)
 	await sio.emit('reply', {'data': data}, room=data['room'], namespace='/chat', skip_sid=sid)
 	print("after await")
 
@@ -47,9 +52,6 @@ def disconnect(sid):
 
 app.router.add_static('/static', 'static')
 app.router.add_get('/', index)
-
-async def get_chat_id():
-    return "chat-%s" % "ehsan"
 
 if __name__ == '__main__':
 	web.run_app(app, port=80)

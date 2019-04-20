@@ -76,6 +76,14 @@ services:
             envoymesh:
                 aliases:
                     - redis
+    mongodb:
+        image: mongo:4.0.8-xenial
+        expose:
+            - "27017"
+        networks:
+            envoymesh:
+                aliases:
+                    - db
 
     client:
         build:
