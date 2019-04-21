@@ -2,6 +2,7 @@ import os
 from aiohttp import web
 import motor.motor_asyncio
 import socketio
+from json import dumps, loads
 
 while(True):
 	try:
@@ -18,6 +19,7 @@ app = web.Application()
 sio.attach(app)
 client = motor.motor_asyncio.AsyncIOMotorClient("mongodb")
 db = client.messages
+logged_in_users = {}
 
 async def index(request):
 	"""Serve the client-side application."""
@@ -32,6 +34,18 @@ def connect(sid, environ):
 async def enter_room(sid, data):
 	print ("entering to room")
 	sio.enter_room(sid, data['room'], namespace="/chat")
+
+@sio.on('login', namespace="/chat")
+async def login(sid, data):
+	print ("user logged in")
+	logged_in_users[sid] = data['username']
+	await sio.emit('loggedInChanged', {'data': dumps(logged_in_users)}, room=data['room'], namespace='/chat')
+
+@sio.on('logout', namespace="/chat")
+async def logout(sid, data):
+	print ("user logged out")
+	del logged_in_users[sid]
+	await sio.emit('loggedInChanged', {'data': dumps(logged_in_users)}, room=data['room'], namespace='/chat')
 
 @sio.on('leave room', namespace="/chat")
 async def leave_room(sid, data):
@@ -49,8 +63,9 @@ async def message(sid, data):
 @sio.on('disconnect', namespace='/chat')
 def disconnect(sid):
 	print('disconnect ', sid)
+	del logged_in_users[sid]
+	sio.emit('loggedInChanged', {'data': dumps(logged_in_users)}, namespace='/chat')
 
-app.router.add_static('/static', 'static')
 app.router.add_get('/', index)
 
 if __name__ == '__main__':

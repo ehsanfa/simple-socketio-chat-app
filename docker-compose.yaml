@@ -8,6 +8,16 @@ services:
             - 9020:80
         networks:
             - envoymesh
+    chat-api-server:
+        build:
+            context: .
+            dockerfile: api-server/deploy/Dockerfile
+        expose: 
+            - "80"
+        networks:
+            - envoymesh
+        volumes:
+            - ./api-server/src:/app
     server_1:
         build:
             context: .
@@ -23,51 +33,51 @@ services:
             envoymesh:
                 aliases:
                     - socket_server_1
-    server_2:
-        build:
-            context: .
-            dockerfile: server/deploy/Dockerfile
-        restart: always
-        environment:
-            - SERVICE_NAME=2
-        expose:
-            - "80"
-        volumes:
-            - ./server/src:/app
-        networks:
-            envoymesh:
-                aliases:
-                    - socket_server_2
-    server_3:
-        build:
-            context: .
-            dockerfile: server/deploy/Dockerfile
-        restart: always
-        environment:
-            - SERVICE_NAME=3
-        expose:
-            - "80"
-        volumes:
-            - ./server/src:/app
-        networks:
-            envoymesh:
-                aliases:
-                    - socket_server_3
-    server_4:
-        build:
-            context: .
-            dockerfile: server/deploy/Dockerfile
-        restart: always
-        environment:
-            - SERVICE_NAME=4
-        expose:
-            - "80"
-        volumes:
-            - ./server/src:/app
-        networks:
-            envoymesh:
-                aliases:
-                    - socket_server_4
+    # server_2:
+    #     build:
+    #         context: .
+    #         dockerfile: server/deploy/Dockerfile
+    #     restart: always
+    #     environment:
+    #         - SERVICE_NAME=2
+    #     expose:
+    #         - "80"
+    #     volumes:
+    #         - ./server/src:/app
+    #     networks:
+    #         envoymesh:
+    #             aliases:
+    #                 - socket_server_2
+    # server_3:
+    #     build:
+    #         context: .
+    #         dockerfile: server/deploy/Dockerfile
+    #     restart: always
+    #     environment:
+    #         - SERVICE_NAME=3
+    #     expose:
+    #         - "80"
+    #     volumes:
+    #         - ./server/src:/app
+    #     networks:
+    #         envoymesh:
+    #             aliases:
+    #                 - socket_server_3
+    # server_4:
+    #     build:
+    #         context: .
+    #         dockerfile: server/deploy/Dockerfile
+    #     restart: always
+    #     environment:
+    #         - SERVICE_NAME=4
+    #     expose:
+    #         - "80"
+    #     volumes:
+    #         - ./server/src:/app
+    #     networks:
+    #         envoymesh:
+    #             aliases:
+    #                 - socket_server_4
     redis:
         image: redis:5.0-alpine
         expose:

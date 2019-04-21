@@ -4,50 +4,135 @@
 	<title>hello from chat app</title>
 </head>
 <body>
-	<!-- <h1>hello from chat app</h1> -->
+	<h1>hello from chat app</h1>
 	<div id="app">
-		{{ messages }}
-		<input type="text" v-model="messageToSend" @keyup.enter="sendMessage">
-		<button @click="leaveRoom">Leave the room</button>
+		<div v-if="entered">
+			<div v-if="currentGroup && currentGroup != 'public'">
+				<div class="messages">
+					<p v-for="msg in messages">
+						<b>{{msg.username}}</b>: {{msg.msg}}
+					</p>
+				</div>
+				<textarea v-model="messageToSend" @keyup.enter="sendMessage"></textarea>
+			</div>
+			<button @click="leaveRoom">Leave the room</button>	
+			<h2>Available Groups</h2>
+			<input type="text" v-model="groupToCreate" @keyup.enter="createGroup">
+			<button @click="createGroup">Create Group</button>
+			<ol>
+				<li v-for="group in availableGroups"><a href="#" @click.prevent="enterGroup(group)">{{ group }}</a></li>
+			</ol>
+			<h2>Online users</h2>
+			<ul>
+				<li v-for="user in loggedInUsers">{{user}}</li>
+			</ul>
+		</div>
+		<div v-else>
+			<h3>Pick a username</h3>
+			<input @keyup.enter="login" type="text" v-model="username">
+			<button @click="login" :disabled="!username">Let's Go</button>
+		</div>	
 	</div>
 	<script src="./socket.io.js"></script>
 	<script src="./vue.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 	<script>
 	  var socket = io("http://chat-app.com:9020/chat");
-	  socket.on('connect', function (msg) {
-	  	socket.emit('enter room', {
-	  		room: 'hasan'
-	  	})
-	  });
 	  var app = new Vue({
 	  el: '#app',
 	  methods: {
+	  	login()
+	  	{
+	  		this.entered = true;
+	  		socket.emit('login', {
+	  			username: this.username,
+	  			room: this.currentGroup
+	  		})
+	  		this.getRooms();
+	  	},
+	  	getRooms()
+	  	{
+	  		axios.get('http://chat-app.com:9020/groups')
+			  .then(res => {
+			    this.availableGroups = res.data;
+			  })
+	  	},
 	  	newMessage(msg) {
-	  		this.messages.push(msg)
+	  		this.messages.push(msg.data)
 	  	},
 	  	sendMessage() {
 	  		console.log('sending new msg')
 	  		socket.emit('chat message', {
 	  			msg: this.messageToSend,
-	  			room: "hasan"
+	  			room: this.currentGroup,
+	  			username: this.username
 	  		});
+	  		this.messages.push({
+	  			msg: this.messageToSend,
+	  			room: this.currentGroup,
+	  			username: this.username
+	  		})
 	  		this.messageToSend = null;
 	  	},
 	  	leaveRoom() {
 	  		socket.emit('leave room', {
-	  			room: "hasan"
+	  			room: this.currentGroup
+	  		})
+	  		socket.emit('logout', {
+		  		room: this.currentGroup,
+		  		username: this.username
+		  	})
+	  	},
+	  	enterGroup(group)
+	  	{
+	  		this.currentGroup = group;
+	  		socket.emit('enter room', {
+		  		room: app.currentGroup
+		  	})
+	  	},
+	  	createGroup()
+	  	{
+	  		axios.post("http://chat-app.com:9020/groups", {
+	  			form: {
+	  				group_name: this.groupToCreate
+	  			}
+	  		}).then(res => {
+	  			this.availableGroups.push(this.groupToCreate);
+	  			this.groupToCreate = null;
+	  		}, err => {
+	  			console.log(err.message)
 	  		})
 	  	}
 	  },
 	  data: {
 	    messages: [],
-	    messageToSend: null
+	    messageToSend: null,
+	    entered: false,
+	    loggedInUsers: [],
+	    username: null,
+	    currentGroup: 'public',
+	    availableGroups: [],
+	    groupToCreate: null
 	  }
 	})
 	  socket.on('reply', function (msg) {
 	  	console.log('new reply')
 	  	app.newMessage(msg)
 	  });
+	  socket.on('loggedInChanged', msg => {
+	  	app.loggedInUsers = JSON.parse(msg.data)
+	  })
+	  socket.on('connect', function (msg) {
+	  	socket.emit('enter room', {
+	  		room: app.currentGroup
+	  	})
+	  });
+	  socket.on('disconnect', () => {
+	  	socket.emit('logout', {
+	  		room: app.currentGroup,
+	  		username: app.username
+	  	})
+	  })
 	</script>
 </body>
 </html>
