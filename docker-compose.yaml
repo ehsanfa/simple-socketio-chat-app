@@ -18,13 +18,11 @@ services:
             - envoymesh
         volumes:
             - ./api-server/src:/app
-    server_1:
+    server:
         build:
             context: .
             dockerfile: server/deploy/Dockerfile
         restart: always
-        environment:
-            - SERVICE_NAME=1
         expose:
             - "80"
         volumes:
@@ -32,52 +30,11 @@ services:
         networks:
             envoymesh:
                 aliases:
-                    - socket_server_1
-    # server_2:
-    #     build:
-    #         context: .
-    #         dockerfile: server/deploy/Dockerfile
-    #     restart: always
-    #     environment:
-    #         - SERVICE_NAME=2
-    #     expose:
-    #         - "80"
-    #     volumes:
-    #         - ./server/src:/app
-    #     networks:
-    #         envoymesh:
-    #             aliases:
-    #                 - socket_server_2
-    # server_3:
-    #     build:
-    #         context: .
-    #         dockerfile: server/deploy/Dockerfile
-    #     restart: always
-    #     environment:
-    #         - SERVICE_NAME=3
-    #     expose:
-    #         - "80"
-    #     volumes:
-    #         - ./server/src:/app
-    #     networks:
-    #         envoymesh:
-    #             aliases:
-    #                 - socket_server_3
-    # server_4:
-    #     build:
-    #         context: .
-    #         dockerfile: server/deploy/Dockerfile
-    #     restart: always
-    #     environment:
-    #         - SERVICE_NAME=4
-    #     expose:
-    #         - "80"
-    #     volumes:
-    #         - ./server/src:/app
-    #     networks:
-    #         envoymesh:
-    #             aliases:
-    #                 - socket_server_4
+                    - socket_server
+        logging:
+          options:
+            max-size: 10m
+            max-file: "5" 
     redis:
         image: redis:5.0-alpine
         expose:
@@ -86,14 +43,30 @@ services:
             envoymesh:
                 aliases:
                     - redis
+        volumes:
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+        command: redis-server --appendonly no --maxmemory-policy allkeys-lru --maxmemory 1024mb --stop-writes-on-bgsave-error no
+        logging:
+          options:
+            max-size: 10m
+            max-file: "5"
     mongodb:
-        image: mongo:4.0.8-xenial
+        image: mongo:4.0-xenial
         expose:
             - "27017"
         networks:
             envoymesh:
                 aliases:
                     - db
+        volumes:
+          - /home/zoodfood/express-location-service/mongo/data:/data/db
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+        logging:
+          options:
+            max-size: 10m
+            max-file: "5"
 
     client:
         build:

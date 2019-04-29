@@ -24,7 +24,7 @@ logged_in_users = {}
 async def index(request):
 	"""Serve the client-side application."""
 	with open('index.html') as f:
-		return web.Response(text=os.environ["SERVICE_NAME"], content_type='text/html')
+		return web.Response(text="hello world", content_type='text/html')
 
 @sio.on('connect', namespace='/chat')
 def connect(sid, environ):
@@ -54,7 +54,6 @@ async def leave_room(sid, data):
 
 @sio.on('chat message', namespace='/chat')
 async def message(sid, data):
-	print("message ", data, os.environ["SERVICE_NAME"])
 	document = {'key': 'value'}
 	await db.test_collection.insert_one(document)
 	await sio.emit('reply', {'data': data}, room=data['room'], namespace='/chat', skip_sid=sid)
